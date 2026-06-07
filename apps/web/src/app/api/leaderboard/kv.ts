@@ -14,11 +14,6 @@ interface LeaderboardRow {
   date: string;
 }
 
-interface DailyScoreRow {
-  score: number;
-  hints_used: number;
-}
-
 export async function submitScore(
   name: string,
   score: number,
@@ -38,16 +33,22 @@ export async function submitScore(
   return entry;
 }
 
-export async function getLeaderboard(limit = 20): Promise<LeaderboardEntry[]> {
+export async function getLeaderboard(limit = 20, date?: string): Promise<LeaderboardEntry[]> {
   const supabase = getSupabase();
   if (!supabase) return [];
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('leaderboard')
     .select('name, score, hints_used, date')
     .order('score', { ascending: false })
     .order('hints_used', { ascending: true })
     .limit(limit);
+
+  if (date) {
+    query = query.eq('date', date);
+  }
+
+  const { data, error } = await query;
 
   if (error || !data) return [];
   return (data as LeaderboardRow[]).map(row => ({
@@ -69,7 +70,7 @@ export async function getTodayScore(date: string): Promise<{ score: number; hint
     .single();
 
   if (!data) return null;
-  const row = data as DailyScoreRow;
+  const row = data as { score: number; hints_used: number };
   return { score: row.score, hintsUsed: row.hints_used };
 }
 

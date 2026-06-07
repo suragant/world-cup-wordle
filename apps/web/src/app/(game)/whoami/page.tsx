@@ -73,6 +73,7 @@ export default function WhoAmIPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [leaderboardTab, setLeaderboardTab] = useState<'daily' | 'alltime'>('daily');
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [playerName, setPlayerName] = useState('');
   const [showNameInput, setShowNameInput] = useState(false);
@@ -83,13 +84,16 @@ export default function WhoAmIPage() {
   const playedToday = hasPlayedToday();
   const todayResult = getTodayResult();
 
-  const fetchLeaderboard = useCallback(async () => {
+  const fetchLeaderboard = useCallback(async (tab: 'daily' | 'alltime' = leaderboardTab) => {
     try {
-      const res = await fetch('/api/leaderboard');
+      const url = tab === 'daily'
+        ? `/api/leaderboard?date=${getTodayKey()}`
+        : '/api/leaderboard';
+      const res = await fetch(url);
       const data = await res.json();
       setLeaderboard(data);
     } catch {}
-  }, []);
+  }, [leaderboardTab]);
 
   useEffect(() => {
     fetchLeaderboard();
@@ -258,10 +262,34 @@ export default function WhoAmIPage() {
       <div className="min-h-screen flex flex-col items-center justify-center gap-6 bg-gray-50 px-4 py-8">
         <div className="w-full max-w-xl rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
           <h2 className="text-xl font-bold text-gray-900 text-center">Leaderboard</h2>
-          <p className="text-xs text-gray-500 text-center mt-1">Top scores all time</p>
+
+          <div className="mt-4 flex rounded-lg border border-gray-200 bg-gray-100 p-1">
+            <button
+              onClick={() => { setLeaderboardTab('daily'); fetchLeaderboard('daily'); }}
+              className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition ${
+                leaderboardTab === 'daily'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Today
+            </button>
+            <button
+              onClick={() => { setLeaderboardTab('alltime'); fetchLeaderboard('alltime'); }}
+              className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition ${
+                leaderboardTab === 'alltime'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              All Time
+            </button>
+          </div>
 
           {leaderboard.length === 0 ? (
-            <p className="text-center text-gray-400 mt-6">No scores yet. Be the first!</p>
+            <p className="text-center text-gray-400 mt-6">
+              {leaderboardTab === 'daily' ? 'No scores today yet. Be the first!' : 'No scores yet. Be the first!'}
+            </p>
           ) : (
             <div className="mt-4 space-y-2">
               {leaderboard.map((entry, i) => (
@@ -290,7 +318,9 @@ export default function WhoAmIPage() {
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-gray-900">{entry.score}</p>
-                    <p className="text-xs text-gray-400">{entry.date}</p>
+                    {leaderboardTab === 'alltime' && (
+                      <p className="text-xs text-gray-400">{entry.date}</p>
+                    )}
                   </div>
                 </div>
               ))}
