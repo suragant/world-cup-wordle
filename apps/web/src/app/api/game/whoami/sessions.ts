@@ -26,6 +26,8 @@ export interface GameSession {
   guessesUsed: number;
   maxGuesses: number;
   status: 'playing' | 'correct' | 'wrong' | 'revealed';
+  sessionType: 'daily' | 'practice';
+  date?: string;
 }
 
 declare global {
@@ -49,6 +51,7 @@ export function createGame(): { sessionId: string; session: GameSession } | null
     guessesUsed: 0,
     maxGuesses: 6,
     status: 'playing',
+    sessionType: 'practice',
   };
   sessions.set(sessionId, session);
   return { sessionId, session };
@@ -70,6 +73,8 @@ export function createDailyGame(): { sessionId: string; session: GameSession; da
     guessesUsed: 0,
     maxGuesses: 6,
     status: 'playing',
+    sessionType: 'daily',
+    date,
   };
   sessions.set(sessionId, session);
   return { sessionId, session, date };

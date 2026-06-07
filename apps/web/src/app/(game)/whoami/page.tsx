@@ -20,6 +20,7 @@ interface GameState {
   answer?: string;
   mode: 'daily' | 'practice';
   date?: string;
+  signature?: string;
 }
 
 interface SearchResult {
@@ -156,6 +157,7 @@ export default function WhoAmIPage() {
           guessesUsed: data.guessesUsed,
           score: data.score,
           answer: data.answer,
+          signature: data.signature,
         } : null);
         if (game.mode === 'daily') {
           markPlayedToday();
@@ -217,6 +219,8 @@ export default function WhoAmIPage() {
           score: game.score,
           hintsUsed: game.guessesUsed,
           date: game.date || getTodayKey(),
+          signature: game.signature,
+          sessionId: game.sessionId,
         }),
       });
       setShowNameInput(false);
@@ -235,7 +239,7 @@ export default function WhoAmIPage() {
       await fetch('/api/leaderboard/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, score, hintsUsed, date }),
+        body: JSON.stringify({ name, score, hintsUsed, date, signature: game?.signature, sessionId: game?.sessionId }),
       });
       setShowLeaderboard(true);
       fetchLeaderboard();
