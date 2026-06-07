@@ -15,6 +15,8 @@ interface GameState {
   status: 'idle' | 'playing' | 'correct' | 'wrong' | 'revealed';
   score: number;
   guesses: string[];
+  guessesUsed: number;
+  maxGuesses: number;
   answer?: string;
   mode: 'daily' | 'practice';
   date?: string;
@@ -135,64 +137,52 @@ export default function WhoAmIPage() {
         body: JSON.stringify({ sessionId: game.sessionId, guess: guessValue.trim() }),
       });
       const data = await res.json();
-      const newStatus = data.status === 'correct' ? 'correct' : 'wrong';
 
-      setGame(prev => prev ? {
-        ...prev,
-        status: newStatus,
-        guesses: data.guesses,
-        score: data.score || prev.score,
-        answer: data.answer,
-      } : null);
-
-      if (newStatus === 'correct' && game.mode === 'daily') {
-        markPlayedToday();
-        saveTodayResult(data.score, game.hintsRevealed);
-        setShowNameInput(true);
+      if (data.status === 'correct') {
+        setGame(prev => prev ? {
+          ...prev,
+          status: 'correct',
+          guesses: data.guesses,
+          guessesUsed: data.guessesUsed,
+          score: data.score,
+          answer: data.answer,
+        } : null);
+        if (game.mode === 'daily') {
+          markPlayedToday();
+          saveTodayResult(data.score, data.guessesUsed);
+          setShowNameInput(true);
+        }
+      } else if (data.status === 'wrong') {
+        // Wrong guess: auto-reveal next hint
+        setGame(prev => prev ? {
+          ...prev,
+          guesses: data.guesses,
+          guessesUsed: data.guessesUsed,
+          hintsRevealed: data.hintsRevealed,
+          totalHints: data.totalHints,
+          hints: prev.hints.length < data.hintsRevealed
+            ? [...prev.hints, data.hintRevealed]
+            : prev.hints,
+        } : null);
+      } else if (data.status === 'revealed') {
+        // Game over: no more guesses
+        setGame(prev => prev ? {
+          ...prev,
+          status: 'revealed',
+          guesses: data.guesses,
+          guessesUsed: data.guessesUsed,
+          answer: data.answer,
+        } : null);
+        if (game.mode === 'daily') {
+          markPlayedToday();
+          saveTodayResult(0, data.guessesUsed);
+        }
       }
 
       setGuess('');
       setShowDropdown(false);
     } catch {
       setError('Failed to submit guess. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const nextHint = async () => {
-    if (!game || game.status !== 'playing') return;
-    setLoading(true);
-    setError('');
-    try {
-      const res = await fetch('/api/game/whoami/next-hint', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId: game.sessionId }),
-      });
-      const data = await res.json();
-      if (data.error) {
-        setGame(prev => prev ? {
-          ...prev,
-          status: 'revealed',
-          hintsRevealed: data.hintsRevealed || prev.hintsRevealed,
-          hints: data.hints || prev.hints,
-        } : null);
-        if (game.mode === 'daily') {
-          markPlayedToday();
-          saveTodayResult(0, game.hintsRevealed);
-        }
-      } else {
-        setGame(prev => prev ? {
-          ...prev,
-          hintsRevealed: data.hintsRevealed,
-          hints: data.hints,
-          totalHints: data.totalHints,
-          score: data.score,
-        } : null);
-      }
-    } catch {
-      setError('Failed to get next hint.');
     } finally {
       setLoading(false);
     }
@@ -208,7 +198,7 @@ export default function WhoAmIPage() {
         body: JSON.stringify({
           name: playerName.trim(),
           score: game.score,
-          hintsUsed: game.hintsRevealed,
+          hintsUsed: game.guessesUsed,
           date: game.date || getTodayKey(),
         }),
       });
@@ -395,7 +385,8 @@ export default function WhoAmIPage() {
   }
 
   const isGameOver = game.status === 'correct' || game.status === 'revealed';
-  const progress = (game.hintsRevealed / game.totalHints) * 100;
+  const guessesLeft = game.maxGuesses - game.guessesUsed;
+  const progress = (game.guessesUsed / game.maxGuesses) * 100;
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-6 bg-gray-50 px-4 py-8">
@@ -408,12 +399,16 @@ export default function WhoAmIPage() {
               </span>
               {game.date && <span className="text-gray-400">{game.date}</span>}
             </div>
-            <span>Hint {game.hintsRevealed} of {game.totalHints}</span>
+            <span className={`font-medium ${guessesLeft <= 2 ? 'text-red-500' : ''}`}>
+              {guessesLeft} guess{guessesLeft !== 1 ? 'es' : ''} left
+            </span>
           </div>
 
           <div className="mt-3 h-1.5 w-full rounded-full bg-gray-100">
             <div
-              className="h-1.5 rounded-full bg-indigo-500 transition-all duration-500"
+              className={`h-1.5 rounded-full transition-all duration-500 ${
+                guessesLeft <= 2 ? 'bg-red-400' : 'bg-indigo-500'
+              }`}
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -478,22 +473,13 @@ export default function WhoAmIPage() {
                 )}
               </div>
 
-              <div className="flex gap-3">
-                <button
-                  onClick={() => handleGuess(guess)}
-                  disabled={loading || !guess.trim()}
-                  className="flex-1 rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? 'Checking...' : 'Guess'}
-                </button>
-                <button
-                  onClick={nextHint}
-                  disabled={loading || game.hintsRevealed >= game.totalHints}
-                  className="rounded-lg border border-gray-300 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Next Hint
-                </button>
-              </div>
+              <button
+                onClick={() => handleGuess(guess)}
+                disabled={loading || !guess.trim()}
+                className="w-full rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Checking...' : 'Guess'}
+              </button>
             </div>
           )}
 
@@ -506,14 +492,14 @@ export default function WhoAmIPage() {
                     <p className="mt-1 text-sm">The answer is <strong>{game.answer}</strong></p>
                     <p className="mt-2 text-2xl font-bold">{game.score} points</p>
                     <p className="text-xs text-emerald-600">
-                      Guessed with {game.hintsRevealed} hint{game.hintsRevealed > 1 ? 's' : ''}
+                      Guessed in {game.guessesUsed} attempt{game.guessesUsed > 1 ? 's' : ''}
                     </p>
                   </>
                 ) : (
                   <>
                     <p className="text-lg font-bold">Game Over</p>
                     <p className="mt-1 text-sm">The answer was <strong>{game.answer}</strong></p>
-                    <p className="mt-2 text-xs text-amber-600">Better luck next time!</p>
+                    <p className="mt-2 text-xs text-amber-600">No more guesses left!</p>
                   </>
                 )}
               </div>
@@ -569,7 +555,7 @@ export default function WhoAmIPage() {
         <p className="mt-4 text-center text-xs text-gray-400">
           {game.mode === 'daily'
             ? 'Daily challenge - one attempt per day'
-            : 'Use fewer hints for a higher score'}
+            : 'Wrong guess reveals the next hint. 6 guesses total.'}
         </p>
       </div>
     </div>

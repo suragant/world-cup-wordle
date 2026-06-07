@@ -19,7 +19,5 @@ export async function POST(request: Request) {
   return NextResponse.json({
     ...result,
     guesses: session.guesses,
-    hintsRevealed: session.hintsRevealed,
-    totalHints: session.hints.length,
   });
 }
