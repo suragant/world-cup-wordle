@@ -1,0 +1,442 @@
+# Project Brief: World Cup Story Trivia
+
+## Overview
+
+World Cup Story Trivia เป็นเกมเว็บขนาดเล็กที่ใช้ข้อมูลนักเตะจาก World Cup 2026 Player Guide ของ The Guardian เป็นฐานข้อมูลหลัก
+
+จุดขายของเกมไม่ใช่การทายสถิติฟุตบอลเพียงอย่างเดียว แต่เป็นการใช้ "เรื่องราวของนักเตะ" (Player Stories) มาสร้างเกมแนว Trivia, Wordle และ Guessing Game
+
+แนวคิดคือเปลี่ยนฐานข้อมูลนักเตะฟุตบอลโลกกว่า 1,200 คน ให้กลายเป็นคลังคอนเทนต์สำหรับสร้างคำถามได้หลายหมื่นข้อ
+
+---
+
+# Core Vision
+
+แทนที่จะถามเพียง
+
+* อายุเท่าไร
+* เล่นสโมสรไหน
+* อยู่ทีมชาติอะไร
+
+เกมจะถามเรื่องราวที่น่าสนใจ เช่น
+
+* ใครมีฉายา Little Chilli
+* ใครเลี้ยงหมาชื่อ Tucker
+* ใครชอบอ่านหนังสือ The Power of Now
+* ใครเคยเล่นกีฬาอื่นก่อนเป็นนักฟุตบอล
+* ใครมีงานอดิเรกแปลก ๆ
+
+เป้าหมายคือสร้างเกมที่แฟนบอลทั่วไปเล่นได้ และแฟนบอลตัวจริงรู้สึกสนุกกับการค้นพบเรื่องราวของนักเตะ
+
+---
+
+# Source Data
+
+Primary Source:
+
+The Guardian World Cup 2026 Complete Player Guide
+
+ข้อมูลแต่ละนักเตะประกอบด้วย
+
+* Name
+* Team
+* Nationality
+* Club
+* Position
+* Age
+* Rating
+* Story
+* Fun Facts
+* Nickname
+* Personal Background
+* Career Notes
+
+ตัวอย่าง
+
+Bukayo Saka
+
+Metadata
+
+* England
+* Arsenal
+* Age 24
+
+Story Data
+
+* Nickname: Little Chilli
+* Dog named Tucker
+* Likes Peri-Peri sauce
+* Reads The Power of Now
+
+ข้อมูลประเภทนี้สามารถนำไปสร้างคำถามได้โดยตรง
+
+---
+
+# Product Strategy
+
+เริ่มจากเกมที่เล็กที่สุดก่อน
+
+## Phase 1
+
+Who Am I?
+
+MVP ที่เล็กที่สุด
+
+### Gameplay
+
+ผู้เล่นได้รับ Hint ทีละข้อ
+
+ตัวอย่าง
+
+Hint 1
+
+I play for England
+
+Hint 2
+
+I play for Arsenal
+
+Hint 3
+
+My nickname is Little Chilli
+
+Hint 4
+
+I own a dog named Tucker
+
+Answer
+
+Bukayo Saka
+
+### Benefits
+
+* พัฒนาเร็ว
+* ใช้ข้อมูลน้อย
+* ทดสอบความสนุกได้ทันที
+
+---
+
+## Phase 2
+
+World Cup Wordle
+
+เกมเดานักเตะแบบ Wordle
+
+### Gameplay
+
+ผู้เล่นเดาได้ 8 ครั้ง
+
+ระบบเปรียบเทียบ
+
+* Team
+* Club
+* Position
+* Age
+* Height
+* Preferred Foot
+
+ตัวอย่าง
+
+| Player | Team | Club | Position | Age |
+| ------ | ---- | ---- | -------- | --- |
+| Kane   | ✅    | ✅    | ✅        | ⬇️  |
+
+### Feedback
+
+Green
+
+ข้อมูลตรง
+
+Yellow
+
+ข้อมูลใกล้เคียง
+
+Gray
+
+ข้อมูลผิด
+
+---
+
+## Phase 3
+
+Story Trivia
+
+เกมตอบคำถามแบบ Quiz
+
+ตัวอย่าง
+
+Question
+
+Which player owns a dog named Tucker?
+
+1. Kane
+2. Rice
+3. Saka
+4. Bellingham
+
+Answer
+
+Saka
+
+---
+
+# Game Modes
+
+## Daily Challenge
+
+สุ่มนักเตะวันละ 1 คน
+
+ผู้เล่นทุกคนเจอคำตอบเดียวกัน
+
+สามารถแชร์ผลลัพธ์ได้
+
+---
+
+## Practice Mode
+
+สุ่มนักเตะไม่จำกัด
+
+เล่นได้ตลอดเวลา
+
+---
+
+## Country Challenge
+
+เลือกประเทศ
+
+เช่น
+
+* England
+* Brazil
+* Argentina
+* Japan
+
+สุ่มเฉพาะนักเตะจากประเทศนั้น
+
+---
+
+## Story Challenge
+
+ใช้เฉพาะข้อมูล Fun Facts
+
+ไม่มี Hint จากสโมสรหรืออายุ
+
+---
+
+# Long-Term Expansion
+
+หลังจาก MVP สำเร็จ
+
+สามารถขยายไปได้อีกหลายทาง
+
+## Football Connections
+
+เกมจัดกลุ่มนักเตะ
+
+เช่น
+
+* England
+* France
+* Spain
+* Argentina
+
+หรือ
+
+* Arsenal
+* PSG
+* Bayern
+* Barcelona
+
+แนวเดียวกับ NYT Connections
+
+---
+
+## Scout Mode
+
+ผู้เล่นรับบทแมวมอง
+
+เดานักเตะจากข้อมูลบางส่วน
+
+สะสมคะแนน
+
+ปลดล็อกการ์ด
+
+---
+
+## Player Cards
+
+นักเตะแต่ละคนมีการ์ดสะสม
+
+ตัวอย่าง
+
+Bukayo Saka
+
+Rating: 88
+
+Facts
+
+* Little Chilli
+* Dog named Tucker
+* Loves Peri-Peri
+* Reads The Power of Now
+
+---
+
+## Fantasy Team Builder
+
+เลือกนักเตะจากฐานข้อมูล
+
+สร้างทีมในงบประมาณจำกัด
+
+---
+
+# AI Usage
+
+AI เป็นส่วนสำคัญของระบบ
+
+## Goal
+
+เปลี่ยน Story ของนักเตะให้เป็น Content อัตโนมัติ
+
+Input
+
+Player Story
+
+Output
+
+Generated Content
+
+* Easy Hints
+* Medium Hints
+* Hard Hints
+* Trivia Questions
+* Multiple Choice Questions
+* Fun Facts
+* Daily Challenge Content
+
+---
+
+## Example Output
+
+Player
+
+Bukayo Saka
+
+Generated Hints
+
+Easy
+
+* England player
+
+Medium
+
+* Arsenal player
+
+Hard
+
+* Nickname is Little Chilli
+
+Very Hard
+
+* Owns a dog named Tucker
+
+Generated Trivia
+
+Q1
+
+Which player owns a dog named Tucker?
+
+Q2
+
+Which player is nicknamed Little Chilli?
+
+Q3
+
+Which player cited The Power of Now as influential?
+
+---
+
+# Technical Recommendation
+
+Frontend
+
+* React
+* Next.js
+* TypeScript
+* TailwindCSS
+
+Backend
+
+* Node.js
+* PostgreSQL
+
+Optional
+
+* OpenAI API
+* Local LLM for content generation
+
+---
+
+# Development Order
+
+Step 1
+
+Scrape player data
+
+Step 2
+
+Normalize player database
+
+Step 3
+
+Generate AI hints
+
+Step 4
+
+Build Who Am I MVP
+
+Step 5
+
+Build Daily Challenge
+
+Step 6
+
+Build World Cup Wordle
+
+Step 7
+
+Build Story Trivia
+
+Step 8
+
+Add Social Sharing
+
+---
+
+# Success Criteria
+
+MVP Success
+
+* User can play a complete round
+* User can guess a player from hints
+* User can share results
+* New players can be added automatically
+
+Product Success
+
+* Daily returning users
+* Shareable results
+* Large reusable question database
+* Expandable into additional football mini-games
+
+---
+
+# Key Insight
+
+The most valuable asset is not the player database itself.
+
+The most valuable asset is the collection of player stories.
+
+Every player profile contains multiple facts, anecdotes, hobbies, nicknames, and personal stories that can be automatically transformed into trivia content.
+
+The project should focus on turning player stories into gameplay.

@@ -1,0 +1,25 @@
+node_modules/
+.next/
+out/
+.DS_Store
+*.pem
+*.tsbuildinfo
+npm-debug.log*
+.env
+.env.local
+.env.*.local
+.vercel
+next-env.d.ts
+World Cup 2026*
+The Guardian_files/
+guardian_player_guide.html
+guardian_teams/
+guardian_wc_players.json
+team_spreadsheets.json
+text-seed-player.json
+wc_player_guide.app.js
+world_cup_players.json
+scripts/
+tmp/
+data/
+Project Brief*

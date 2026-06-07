@@ -1,0 +1,14 @@
+{
+  "name": "world-cup-story-trivia",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w wc-web",
+    "build": "npm run build -w wc-web",
+    "lint": "npm run lint -w wc-web"
+  }
+}
