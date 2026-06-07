@@ -67,6 +67,15 @@ function saveTodayResult(score: number, hintsUsed: number) {
   localStorage.setItem(key, JSON.stringify({ score, hintsUsed }));
 }
 
+function getSavedName(): string {
+  if (typeof window === 'undefined') return '';
+  return localStorage.getItem('whoami-player-name') || '';
+}
+
+function setSavedName(name: string) {
+  localStorage.setItem('whoami-player-name', name);
+}
+
 export default function WhoAmIPage() {
   const [game, setGame] = useState<GameState | null>(null);
   const [guess, setGuess] = useState('');
@@ -85,6 +94,7 @@ export default function WhoAmIPage() {
 
   const playedToday = hasPlayedToday();
   const todayResult = getTodayResult();
+  const savedName = getSavedName();
 
   const fetchLeaderboard = useCallback(async (tab: 'daily' | 'alltime' = leaderboardTab) => {
     try {
@@ -150,7 +160,13 @@ export default function WhoAmIPage() {
         if (game.mode === 'daily') {
           markPlayedToday();
           saveTodayResult(data.score, data.guessesUsed);
-          setShowNameInput(true);
+          if (savedName) {
+            // Auto-submit with saved name
+            setPlayerName(savedName);
+            setTimeout(() => submitScoreWith(savedName, data.score, data.guessesUsed, game.date || getTodayKey()), 0);
+          } else {
+            setShowNameInput(true);
+          }
         }
       } else if (data.status === 'wrong') {
         // Wrong guess: auto-reveal next hint
@@ -192,6 +208,7 @@ export default function WhoAmIPage() {
     if (!playerName.trim() || !game) return;
     setLoading(true);
     try {
+      setSavedName(playerName.trim());
       await fetch('/api/leaderboard/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -210,6 +227,19 @@ export default function WhoAmIPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const submitScoreWith = async (name: string, score: number, hintsUsed: number, date: string) => {
+    try {
+      setSavedName(name);
+      await fetch('/api/leaderboard/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, score, hintsUsed, date }),
+      });
+      setShowLeaderboard(true);
+      fetchLeaderboard();
+    } catch {}
   };
 
   const selectPlayer = (name: string) => {
