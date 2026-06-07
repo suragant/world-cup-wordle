@@ -342,9 +342,6 @@ export default function WhoAmIPage() {
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-gray-900">{entry.score}</p>
-                    {leaderboardTab === 'alltime' && (
-                      <p className="text-xs text-gray-400">{entry.date}</p>
-                    )}
                   </div>
                 </div>
               ))}
