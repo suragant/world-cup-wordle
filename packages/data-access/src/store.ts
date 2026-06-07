@@ -1,4 +1,4 @@
-import type { Player, DailyChallenge, PlayerSearchResult } from '@world-cup-story-trivia/shared-types';
+import type { Player, DailyChallenge, PlayerSearchResult, WhoAmIHint, WhoAmISession } from '@world-cup-story-trivia/shared-types';
 
 export class WorldCupDataStore {
   private players: Player[] = [];
@@ -65,19 +65,11 @@ export class WorldCupDataStore {
   }
 }
 
-export interface WhoAmIHint {
-  level: number;
-  text: string;
-}
-
-export interface WhoAmISession {
+export interface DailyGameSession {
   playerId: string;
   playerName: string;
   hints: WhoAmIHint[];
   totalHints: number;
-}
-
-export interface DailyGameSession extends WhoAmISession {
   date: string;
 }
 

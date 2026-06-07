@@ -59,26 +59,4 @@ export async function getLeaderboard(limit = 20, date?: string): Promise<Leaderb
   }));
 }
 
-export async function getTodayScore(date: string): Promise<{ score: number; hintsUsed: number } | null> {
-  const supabase = getSupabase();
-  if (!supabase) return null;
 
-  const { data } = await supabase
-    .from('daily_scores')
-    .select('score, hints_used')
-    .eq('date', date)
-    .single();
-
-  if (!data) return null;
-  const row = data as { score: number; hints_used: number };
-  return { score: row.score, hintsUsed: row.hints_used };
-}
-
-export async function setTodayScore(date: string, score: number, hintsUsed: number): Promise<void> {
-  const supabase = getSupabase();
-  if (!supabase) return;
-
-  await supabase
-    .from('daily_scores')
-    .upsert({ date, score, hints_used: hintsUsed }, { onConflict: 'date' });
-}

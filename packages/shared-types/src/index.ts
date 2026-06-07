@@ -43,12 +43,4 @@ export interface WhoAmISession {
   totalHints: number;
 }
 
-export interface WhoAmIGameState {
-  sessionId: string;
-  hintsRevealed: number;
-  hints: WhoAmIHint[];
-  answer: string;
-  status: 'playing' | 'correct' | 'wrong' | 'revealed';
-  score: number;
-  guesses: string[];
-}
+

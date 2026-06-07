@@ -1,1 +1,1 @@
-export type { Player, DailyChallenge, PlayerSearchResult } from './src/index';
+export type { Player, DailyChallenge, PlayerSearchResult, WhoAmIHint, WhoAmISession } from './src/index';

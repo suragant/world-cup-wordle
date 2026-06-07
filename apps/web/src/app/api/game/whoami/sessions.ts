@@ -79,18 +79,6 @@ export function getSession(sessionId: string): GameSession | null {
   return sessions.get(sessionId) || null;
 }
 
-export function revealNextHint(sessionId: string): { hint: WhoAmIHint; hintsRevealed: number; totalHints: number } | null {
-  const session = sessions.get(sessionId);
-  if (!session || session.status !== 'playing') return null;
-  if (session.hintsRevealed >= session.hints.length) return null;
-  session.hintsRevealed++;
-  return {
-    hint: session.hints[session.hintsRevealed - 1],
-    hintsRevealed: session.hintsRevealed,
-    totalHints: session.hints.length,
-  };
-}
-
 export function makeGuess(sessionId: string, guess: string): {
   status: string;
   answer?: string;
