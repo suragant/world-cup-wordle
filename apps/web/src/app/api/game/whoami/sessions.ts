@@ -41,7 +41,8 @@ export function createGame(): { sessionId: string; session: GameSession } | null
   if (!s) return null;
   const engine = new WhoAmIEngine(s);
   const data = engine.createSession();
-  const sessionId = `${data.playerId}-${Date.now()}`;
+  const playerHash = data.playerId.split('').reduce((h, c) => ((h << 5) - h + c.charCodeAt(0)) | 0, 0).toString(36);
+  const sessionId = `practice-${playerHash}-${Date.now()}`;
   const session: GameSession = {
     playerId: data.playerId,
     playerName: data.playerName,
@@ -66,7 +67,8 @@ export function createDailyGame(clientDate?: string): { sessionId: string; sessi
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   })();
   const data = engine.createDailyChallenge(date);
-  const sessionId = `daily-${date}-${data.playerId}`;
+  const playerHash = data.playerId.split('').reduce((h, c) => ((h << 5) - h + c.charCodeAt(0)) | 0, 0).toString(36);
+  const sessionId = `daily-${date}-${playerHash}`;
   const session: GameSession = {
     playerId: data.playerId,
     playerName: data.playerName,

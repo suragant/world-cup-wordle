@@ -16,7 +16,6 @@ export async function POST(request: Request) {
       sessionId,
       mode: 'daily',
       date,
-      playerId: session.playerId,
       hintsRevealed: session.hintsRevealed,
       hints: session.hints.slice(0, 1),
       totalHints: session.hints.length,
