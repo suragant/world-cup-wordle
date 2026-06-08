@@ -82,13 +82,12 @@ function seededRandom(seed: number): () => number {
 }
 
 function dateToSeed(dateStr: string): number {
-  let hash = 0;
+  let hash = 0x811c9dc5;
   for (let i = 0; i < dateStr.length; i++) {
-    const char = dateStr.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash |= 0;
+    hash ^= dateStr.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
   }
-  return Math.abs(hash) + 1;
+  return (hash >>> 0) + 1;
 }
 
 export class WhoAmIEngine {
