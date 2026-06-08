@@ -4,6 +4,11 @@ import { createHmac } from 'crypto';
 
 const SECRET = process.env.SCORE_SECRET || 'wc26-score-secret-change-in-prod';
 
+function getTodayKey() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -23,7 +28,7 @@ export async function POST(request: Request) {
 
     // Verify signature: only server can generate valid signatures
     if (signature && sessionId) {
-      const payload = `${sessionId}:${score}:${hintsUsed || 0}:${date || new Date().toISOString().slice(0, 10)}`;
+      const payload = `${sessionId}:${score}:${hintsUsed || 0}:${date || getTodayKey()}`;
       const expected = createHmac('sha256', SECRET).update(payload).digest('hex');
       if (signature !== expected) {
         return NextResponse.json({ error: 'Invalid signature' }, { status: 403 });
@@ -34,7 +39,7 @@ export async function POST(request: Request) {
       name,
       score,
       hintsUsed || 0,
-      date || new Date().toISOString().slice(0, 10)
+      date || getTodayKey()
     );
     return NextResponse.json(entry);
   } catch {

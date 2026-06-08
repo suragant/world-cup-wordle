@@ -105,7 +105,7 @@ export class WhoAmIEngine {
 
     return {
       id: `whoami-${source.id}`,
-      date: new Date().toISOString().slice(0, 10),
+      date: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`,
       question: 'Who am I?',
       options: answers.map(a => a.text),
       answer: source.name,

@@ -61,7 +61,8 @@ export function createDailyGame(): { sessionId: string; session: GameSession; da
   const s = getStore();
   if (!s) return null;
   const engine = new WhoAmIEngine(s);
-  const date = new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const data = engine.createDailyChallenge(date);
   const sessionId = `daily-${date}-${data.playerId}`;
   const session: GameSession = {
