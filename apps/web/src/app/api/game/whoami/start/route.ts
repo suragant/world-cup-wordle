@@ -4,9 +4,10 @@ import { createGame, createDailyGame } from '../sessions';
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
   const mode = body.mode || 'practice';
+  const clientDate = body.date;
 
   if (mode === 'daily') {
-    const result = createDailyGame();
+    const result = createDailyGame(clientDate);
     if (!result) {
       return NextResponse.json({ error: 'Failed to load player data' }, { status: 500 });
     }

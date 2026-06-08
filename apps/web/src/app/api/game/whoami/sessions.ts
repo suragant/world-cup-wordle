@@ -57,12 +57,14 @@ export function createGame(): { sessionId: string; session: GameSession } | null
   return { sessionId, session };
 }
 
-export function createDailyGame(): { sessionId: string; session: GameSession; date: string } | null {
+export function createDailyGame(clientDate?: string): { sessionId: string; session: GameSession; date: string } | null {
   const s = getStore();
   if (!s) return null;
   const engine = new WhoAmIEngine(s);
-  const now = new Date();
-  const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const date = clientDate || (() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  })();
   const data = engine.createDailyChallenge(date);
   const sessionId = `daily-${date}-${data.playerId}`;
   const session: GameSession = {

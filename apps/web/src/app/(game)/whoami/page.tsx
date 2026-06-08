@@ -124,7 +124,7 @@ export default function WhoAmIPage() {
       const res = await fetch('/api/game/whoami/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode: gameMode }),
+        body: JSON.stringify({ mode: gameMode, date: gameMode === 'daily' ? getTodayKey() : undefined }),
       });
       if (!res.ok) throw new Error('Failed to start game');
       const data = await res.json();
