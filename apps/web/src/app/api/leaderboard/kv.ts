@@ -37,26 +37,47 @@ export async function getLeaderboard(limit = 20, date?: string): Promise<Leaderb
   const supabase = getSupabase();
   if (!supabase) return [];
 
-  let query = supabase
-    .from('leaderboard')
-    .select('name, score, hints_used, date')
-    .order('score', { ascending: false })
-    .order('hints_used', { ascending: true })
-    .limit(limit);
-
   if (date) {
-    query = query.eq('date', date);
+    const { data, error } = await supabase
+      .from('leaderboard')
+      .select('name, score, hints_used, date')
+      .eq('date', date)
+      .order('score', { ascending: false })
+      .order('hints_used', { ascending: true })
+      .limit(limit);
+
+    if (error || !data) return [];
+    return (data as LeaderboardRow[]).map(row => ({
+      name: row.name,
+      score: row.score,
+      hintsUsed: row.hints_used,
+      date: row.date,
+    }));
   }
 
-  const { data, error } = await query;
+  const { data, error } = await supabase
+    .from('leaderboard')
+    .select('name, score, hints_used, date')
+    .order('score', { ascending: false });
 
   if (error || !data) return [];
-  return (data as LeaderboardRow[]).map(row => ({
-    name: row.name,
-    score: row.score,
-    hintsUsed: row.hints_used,
-    date: row.date,
-  }));
+
+  const bestByPlayer = new Map<string, LeaderboardEntry>();
+  for (const row of data as LeaderboardRow[]) {
+    const existing = bestByPlayer.get(row.name);
+    if (!existing || row.score > existing.score) {
+      bestByPlayer.set(row.name, {
+        name: row.name,
+        score: row.score,
+        hintsUsed: row.hints_used,
+        date: row.date,
+      });
+    }
+  }
+
+  return Array.from(bestByPlayer.values())
+    .sort((a, b) => b.score - a.score || a.hintsUsed - b.hintsUsed)
+    .slice(0, limit);
 }
 
 
