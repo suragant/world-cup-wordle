@@ -62,22 +62,34 @@ export async function getLeaderboard(limit = 20, date?: string): Promise<Leaderb
 
   if (error || !data) return [];
 
-  const bestByPlayer = new Map<string, LeaderboardEntry>();
+  const totalByPlayer = new Map<string, { name: string; totalScore: number; gamesPlayed: number; bestScore: number; lastDate: string }>();
   for (const row of data as LeaderboardRow[]) {
-    const existing = bestByPlayer.get(row.name);
-    if (!existing || row.score > existing.score) {
-      bestByPlayer.set(row.name, {
+    const existing = totalByPlayer.get(row.name);
+    if (existing) {
+      existing.totalScore += row.score;
+      existing.gamesPlayed++;
+      if (row.score > existing.bestScore) existing.bestScore = row.score;
+      if (row.date > existing.lastDate) existing.lastDate = row.date;
+    } else {
+      totalByPlayer.set(row.name, {
         name: row.name,
-        score: row.score,
-        hintsUsed: row.hints_used,
-        date: row.date,
+        totalScore: row.score,
+        gamesPlayed: 1,
+        bestScore: row.score,
+        lastDate: row.date,
       });
     }
   }
 
-  return Array.from(bestByPlayer.values())
-    .sort((a, b) => b.score - a.score || a.hintsUsed - b.hintsUsed)
-    .slice(0, limit);
+  return Array.from(totalByPlayer.values())
+    .sort((a, b) => b.totalScore - a.totalScore)
+    .slice(0, limit)
+    .map(p => ({
+      name: p.name,
+      score: p.totalScore,
+      hintsUsed: p.gamesPlayed,
+      date: p.lastDate,
+    }));
 }
 
 

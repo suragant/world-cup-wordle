@@ -341,7 +341,12 @@ export default function WhoAmIPage() {
                     </span>
                     <div>
                       <p className="font-medium text-gray-900">{entry.name}</p>
-                      <p className="text-xs text-gray-500">{entry.hintsUsed} hint{entry.hintsUsed > 1 ? 's' : ''} used</p>
+                      <p className="text-xs text-gray-500">
+                        {leaderboardTab === 'alltime'
+                          ? `${entry.hintsUsed} game${entry.hintsUsed > 1 ? 's' : ''}`
+                          : `${entry.hintsUsed} hint${entry.hintsUsed > 1 ? 's' : ''} used`
+                        }
+                      </p>
                     </div>
                   </div>
                   <div className="text-right">
