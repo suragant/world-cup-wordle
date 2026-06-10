@@ -125,9 +125,10 @@ export class WhoAmIEngine {
     };
   }
 
-  createDailyChallenge(dateStr?: string): DailyGameSession {
-    const date = dateStr || new Date().toISOString().slice(0, 10);
-    const seed = dateToSeed(date);
+  createDailyChallenge(dateStr?: string, seedOverride?: number): DailyGameSession {
+    const now = new Date();
+    const date = dateStr || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const seed = seedOverride ?? dateToSeed(date);
     const rand = seededRandom(seed);
     const all = this.store.getAllPlayers();
     const idx = Math.floor(rand() * all.length);

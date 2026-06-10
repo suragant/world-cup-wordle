@@ -1,5 +1,6 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { createHmac } from 'crypto';
 import { createStoreFromJson, WhoAmIEngine } from '@world-cup-story-trivia/data-access';
 import type { WhoAmIHint } from '@world-cup-story-trivia/shared-types';
 
@@ -8,13 +9,20 @@ let store: ReturnType<typeof createStoreFromJson> | null = null;
 function getStore() {
   if (store) return store;
   try {
-    const dataPath = join(process.cwd(), 'public', 'world_cup_players.json');
+    const dataPath = join(process.cwd(), 'server-data', 'world_cup_players.json');
     const raw = readFileSync(dataPath, 'utf-8');
     store = createStoreFromJson(JSON.parse(raw));
     return store;
   } catch {
     return null;
   }
+}
+
+const SECRET = process.env.SCORE_SECRET || 'wc26-score-secret-change-in-prod';
+
+function getDailySeed(date: string): number {
+  const hmac = createHmac('sha256', SECRET).update(`daily:${date}`).digest('hex');
+  return parseInt(hmac.slice(0, 8), 16);
 }
 
 export interface GameSession {
@@ -66,7 +74,8 @@ export function createDailyGame(clientDate?: string): { sessionId: string; sessi
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   })();
-  const data = engine.createDailyChallenge(date);
+  const seed = getDailySeed(date);
+  const data = engine.createDailyChallenge(date, seed);
   const playerHash = data.playerId.split('').reduce((h, c) => ((h << 5) - h + c.charCodeAt(0)) | 0, 0).toString(36);
   const sessionId = `daily-${date}-${playerHash}`;
   const session: GameSession = {
