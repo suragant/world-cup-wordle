@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
+import ShareModal from './share-modal';
 
 interface Hint {
   level: number;
@@ -55,7 +56,7 @@ function markPlayedToday() {
   localStorage.setItem(key, 'true');
 }
 
-function getTodayResult(): { score: number; hintsUsed: number } | null {
+function getTodayResult(): { score: number; hintsUsed: number; guessResults: string[][] } | null {
   if (typeof window === 'undefined') return null;
   const key = `whoami-result-${getTodayKey()}`;
   const data = localStorage.getItem(key);
@@ -67,9 +68,9 @@ function getTodayResult(): { score: number; hintsUsed: number } | null {
   }
 }
 
-function saveTodayResult(score: number, hintsUsed: number) {
+function saveTodayResult(score: number, hintsUsed: number, guessResults: string[][]) {
   const key = `whoami-result-${getTodayKey()}`;
-  localStorage.setItem(key, JSON.stringify({ score, hintsUsed }));
+  localStorage.setItem(key, JSON.stringify({ score, hintsUsed, guessResults }));
 }
 
 function getSavedName(): string {
@@ -94,6 +95,8 @@ export default function WhoAmIPage() {
   const [playerName, setPlayerName] = useState('');
   const [showNameInput, setShowNameInput] = useState(false);
   const [mode, setMode] = useState<'daily' | 'practice'>('daily');
+  const [guessResults, setGuessResults] = useState<string[][]>([]);
+  const [showShareModal, setShowShareModal] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -145,6 +148,7 @@ export default function WhoAmIPage() {
     if (!game || !guessValue.trim() || game.status !== 'playing') return;
     setLoading(true);
     setError('');
+    const hintsAtGuess = game.hintsRevealed;
     try {
       const res = await fetch('/api/game/whoami/guess', {
         method: 'POST',
@@ -154,6 +158,9 @@ export default function WhoAmIPage() {
       const data = await res.json();
 
       if (data.status === 'correct') {
+        const allCorrect = ['correct', 'correct', 'correct', 'correct', 'correct'];
+        const finalResults = [...guessResults, allCorrect];
+        setGuessResults(finalResults);
         setGame(prev => prev ? {
           ...prev,
           status: 'correct',
@@ -165,7 +172,8 @@ export default function WhoAmIPage() {
         } : null);
         if (game.mode === 'daily') {
           markPlayedToday();
-          saveTodayResult(data.score, data.guessesUsed);
+          saveTodayResult(data.score, data.guessesUsed, finalResults);
+          setTimeout(() => setShowShareModal(true), 1000);
           if (savedName) {
             // Auto-submit with saved name
             setPlayerName(savedName);
@@ -176,6 +184,11 @@ export default function WhoAmIPage() {
         }
       } else if (data.status === 'wrong') {
         // Wrong guess: auto-reveal next hint
+        setGuessResults(prev => {
+          const revealed = Math.min(data.hintsRevealed, 5);
+          const row = Array.from({ length: 5 }, (_, i) => i < revealed ? 'wrong' : 'unused');
+          return [...prev, row];
+        });
         setGame(prev => prev ? {
           ...prev,
           guesses: data.guesses,
@@ -188,6 +201,10 @@ export default function WhoAmIPage() {
         } : null);
       } else if (data.status === 'revealed') {
         // Game over: no more guesses
+        const revealedHints = Math.min(hintsAtGuess, 5);
+        const lastRow = Array.from({ length: 5 }, (_, i) => i < revealedHints ? 'wrong' : 'unused');
+        const finalResults = [...guessResults, lastRow];
+        setGuessResults(finalResults);
         setGame(prev => prev ? {
           ...prev,
           status: 'revealed',
@@ -197,7 +214,8 @@ export default function WhoAmIPage() {
         } : null);
         if (game.mode === 'daily') {
           markPlayedToday();
-          saveTodayResult(0, data.guessesUsed);
+          saveTodayResult(0, data.guessesUsed, finalResults);
+          setShowShareModal(true);
         }
       }
 
@@ -388,9 +406,19 @@ export default function WhoAmIPage() {
             <div className="mt-4 rounded-lg bg-amber-50 border border-amber-200 p-4 text-center">
               <p className="text-sm font-medium text-amber-800">You already played today!</p>
               {todayResult && (
-                <p className="text-xs text-amber-600 mt-1">
-                  Today&apos;s score: {todayResult.score} points ({todayResult.hintsUsed} hint{todayResult.hintsUsed > 1 ? 's' : ''})
-                </p>
+                <>
+                  <p className="text-xs text-amber-600 mt-1">
+                    Today&apos;s score: {todayResult.score} points ({todayResult.hintsUsed} hint{todayResult.hintsUsed > 1 ? 's' : ''})
+                  </p>
+                  {todayResult.guessResults && todayResult.guessResults.length > 0 && (
+                    <button
+                      onClick={() => setShowShareModal(true)}
+                      className="mt-2 rounded-lg bg-amber-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-amber-700"
+                    >
+                      Share Result
+                    </button>
+                  )}
+                </>
               )}
             </div>
           )}
@@ -577,6 +605,12 @@ export default function WhoAmIPage() {
                     Play Again
                   </button>
                   <button
+                    onClick={() => setShowShareModal(true)}
+                    className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    Share Result
+                  </button>
+                  <button
                     onClick={() => { setShowLeaderboard(true); fetchLeaderboard(); }}
                     className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
                   >
@@ -598,6 +632,23 @@ export default function WhoAmIPage() {
             : 'Wrong guess reveals the next hint. 6 guesses total.'}
         </p>
       </div>
+
+      {showShareModal && (() => {
+        const stored = todayResult?.guessResults?.length ? todayResult : null;
+        const shareScore = game?.status !== 'idle' && game ? game.score : (stored?.score || 0);
+        const shareHints = game?.status !== 'idle' && game ? game.guessesUsed : (stored?.hintsUsed || 0);
+        const shareResults = guessResults.length > 0 ? guessResults : (stored?.guessResults || []);
+        return (
+          <ShareModal
+            score={shareScore}
+            hintsUsed={shareHints}
+            guessesMax={game?.maxGuesses || 6}
+            guessResults={shareResults}
+            isCorrect={game?.status === 'correct'}
+            onClose={() => setShowShareModal(false)}
+          />
+        );
+      })()}
     </div>
   );
 }

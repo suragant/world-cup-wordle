@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Share Result — Feature Spec</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3350;
+    --green: #4ade80;
+    --yellow: #fbbf24;
+    --gray: #374151;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --accent: #6366f1;
+    --accent2: #818cf8;
+    --x-black: #000000;
+    font-family: 'Courier New', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 2rem 1rem;
+  }
+
+  .page {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .badge {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.6rem;
+    border-radius: 4px;
+    margin-bottom: 0.75rem;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.4rem;
+  }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-family: system-ui, sans-serif;
+  }
+
+  /* Sections */
+  .section {
+    margin-bottom: 2.5rem;
+  }
+
+  h2 {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  h2::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+    font-family: system-ui, sans-serif;
+  }
+
+  p, li {
+    font-family: system-ui, sans-serif;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  ul {
+    padding-left: 1.2rem;
+  }
+
+  li {
+    margin-bottom: 0.3rem;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .card-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  @media (max-width: 600px) {
+    .card-row { grid-template-columns: 1fr; }
+  }
+
+  /* Code blocks */
+  pre {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    overflow-x: auto;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    color: #c8d3f5;
+  }
+
+  code {
+    font-family: 'Courier New', monospace;
+  }
+
+  .comment { color: #5c6370; }
+  .kw { color: #c792ea; }
+  .fn { color: #82aaff; }
+  .str { color: #c3e88d; }
+  .num { color: #f78c6c; }
+  .var { color: #f1f5f9; }
+
+  /* Share text preview */
+  .share-preview {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--green);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    font-family: monospace;
+    font-size: 1rem;
+    line-height: 1.8;
+    color: var(--text);
+    white-space: pre;
+    margin-bottom: 1rem;
+  }
+
+  /* Emoji legend */
+  .legend {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+  }
+
+  .legend-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: system-ui, sans-serif;
+    font-size: 0.88rem;
+    color: var(--muted);
+  }
+
+  .legend-emoji {
+    font-size: 1.1rem;
+    width: 1.5rem;
+    text-align: center;
+  }
+
+  /* UX Flow */
+  .flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .flow-step {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .flow-line {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    flex-shrink: 0;
+  }
+
+  .flow-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .flow-connector {
+    width: 2px;
+    height: 32px;
+    background: var(--border);
+    margin: 0 auto;
+  }
+
+  .flow-content {
+    padding-bottom: 1.5rem;
+    padding-top: 0.3rem;
+  }
+
+  .flow-title {
+    font-family: system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text);
+    margin-bottom: 0.2rem;
+  }
+
+  .flow-desc {
+    font-family: system-ui, sans-serif;
+    font-size: 0.83rem;
+    color: var(--muted);
+  }
+
+  /* Modal mockup */
+  .modal-mock {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.75rem;
+    max-width: 360px;
+    margin: 0 auto 1rem;
+    text-align: center;
+  }
+
+  .modal-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    color: var(--text);
+    font-family: system-ui, sans-serif;
+  }
+
+  .modal-sub {
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-family: system-ui, sans-serif;
+    margin-bottom: 1.2rem;
+  }
+
+  .score-chip {
+    display: inline-block;
+    background: var(--green);
+    color: #000;
+    font-weight: 700;
+    font-size: 1.4rem;
+    padding: 0.4rem 1.2rem;
+    border-radius: 8px;
+    margin-bottom: 1.2rem;
+    font-family: system-ui, sans-serif;
+  }
+
+  .grid-display {
+    font-size: 1.5rem;
+    letter-spacing: 0.1em;
+    margin-bottom: 1.2rem;
+    line-height: 1.9;
+  }
+
+  .btn-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .btn {
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-family: system-ui, sans-serif;
+    cursor: pointer;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+  }
+
+  .btn-copy {
+    background: var(--accent);
+    color: white;
+  }
+
+  .btn-x {
+    background: var(--x-black);
+    color: white;
+    border: 1px solid #333;
+  }
+
+  .btn-link {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+
+  /* Hint map table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: system-ui, sans-serif;
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+  }
+
+  th {
+    text-align: left;
+    padding: 0.6rem 0.75rem;
+    color: var(--muted);
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  td {
+    padding: 0.6rem 0.75rem;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  .chip {
+    display: inline-block;
+    font-size: 0.75rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 600;
+    font-family: monospace;
+  }
+
+  .chip-green { background: rgba(74,222,128,0.15); color: var(--green); }
+  .chip-yellow { background: rgba(251,191,36,0.15); color: var(--yellow); }
+  .chip-gray { background: rgba(55,65,81,0.4); color: #9ca3af; }
+
+  /* Rules */
+  .rule-box {
+    background: rgba(99,102,241,0.08);
+    border: 1px solid rgba(99,102,241,0.25);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .rule-title {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--accent2);
+    font-family: system-ui, sans-serif;
+    margin-bottom: 0.3rem;
+  }
+
+  .rule-desc {
+    font-family: system-ui, sans-serif;
+    font-size: 0.83rem;
+    color: var(--muted);
+  }
+
+  /* Tags */
+  .tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+  }
+
+  .tag {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.75rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 4px;
+    font-family: monospace;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="badge">Feature Spec</div>
+    <h1>Share Result</h1>
+    <p class="subtitle">WhoAmI — World Cup 2026 Wordle &nbsp;·&nbsp; Implementation brief for developers</p>
+  </div>
+
+  <!-- Overview -->
+  <div class="section">
+    <h2>Overview</h2>
+    <div class="card">
+      <h3>Goal</h3>
+      <p>After a player finishes the daily WhoAmI challenge, show a modal with their result and let them share it to X (Twitter) or copy to clipboard — without revealing the answer to people who haven't played yet.</p>
+      <br>
+      <h3>Scope</h3>
+      <ul>
+        <li>Result modal UI (shown on correct guess or all hints exhausted)</li>
+        <li><code>generateShareText()</code> utility function</li>
+        <li>Copy to clipboard action with toast feedback</li>
+        <li>Share to X via Twitter intent URL</li>
+        <li>Copy link action</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Share Text Format -->
+  <div class="section">
+    <h2>Share Text Format</h2>
+
+    <h3 style="margin-bottom:0.75rem; font-family:system-ui,sans-serif; font-size:0.9rem; color:var(--muted);">Example output (copy-pasteable):</h3>
+    <div class="share-preview">🟩 WhoAmI #42 — 82/100
+⬜⬜⬜⬜⬜
+🟩⬜⬜⬜⬜
+🟩🟩⬜⬜⬜
+
+🌍 Nationality · ⚽ Club · 📍 Position · 🔢 Number · 🎂 Age
+wc26wordle.netlify.app/whoami</div>
+
+    <p style="font-family:system-ui,sans-serif; font-size:0.83rem; color:var(--muted); margin-bottom:1rem;">
+      Each row = one guess attempt. Each cell = one hint category. Player name is <strong style="color:var(--text)">never revealed</strong> in the share text.
+    </p>
+
+    <div class="legend">
+      <div class="legend-row"><span class="legend-emoji">🟩</span> Guessed correctly on this attempt</div>
+      <div class="legend-row"><span class="legend-emoji">🟨</span> Close — same region/league but not exact</div>
+      <div class="legend-row"><span class="legend-emoji">⬜</span> Wrong / hint not helpful</div>
+      <div class="legend-row"><span class="legend-emoji">⬛</span> Hint not used (skipped)</div>
+    </div>
+  </div>
+
+  <!-- Hint → Emoji Mapping -->
+  <div class="section">
+    <h2>Hint → Emoji Mapping</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Hint #</th>
+          <th>Category</th>
+          <th>Icon</th>
+          <th>🟩 Correct</th>
+          <th>🟨 Close</th>
+          <th>⬜ Wrong</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>Nationality</td>
+          <td>🌍</td>
+          <td>Exact country match</td>
+          <td>Same continent</td>
+          <td>Different continent</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td>Club</td>
+          <td>⚽</td>
+          <td>Exact club match</td>
+          <td>Same league/country</td>
+          <td>Different league</td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td>Position</td>
+          <td>📍</td>
+          <td>Exact position match</td>
+          <td>Same position group (e.g. both defenders)</td>
+          <td>Completely different</td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td>Shirt Number</td>
+          <td>🔢</td>
+          <td>Exact number</td>
+          <td>Within ±3</td>
+          <td>Outside ±3</td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td>Age</td>
+          <td>🎂</td>
+          <td>Exact age</td>
+          <td>Within ±2 years</td>
+          <td>Outside ±2 years</td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="font-family:system-ui,sans-serif; font-size:0.8rem; color:var(--muted);">
+      ⚠️ Adjust "close" thresholds to match actual game logic. If game doesn't support "close" state, use only 🟩 / ⬜.
+    </p>
+  </div>
+
+  <!-- Modal UI -->
+  <div class="section">
+    <h2>Modal UI</h2>
+
+    <div class="modal-mock">
+      <div class="modal-title">🎉 Got it!</div>
+      <div class="modal-sub">WhoAmI #42 &nbsp;·&nbsp; 3 hints used</div>
+      <div class="score-chip">82 / 100</div>
+      <div class="grid-display">
+        ⬜⬜⬜⬜⬜<br>
+        🟩⬜⬜⬜⬜<br>
+        🟩🟩🟩🟩🟩
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-copy">📋 Copy Result</button>
+        <button class="btn btn-x">𝕏 Share on X</button>
+        <button class="btn btn-link">🔗 Copy Link</button>
+      </div>
+    </div>
+
+    <div class="card-row">
+      <div class="card">
+        <h3>Trigger conditions</h3>
+        <ul>
+          <li>Player guesses correctly → show modal after 1s delay</li>
+          <li>All hints exhausted without correct answer → show modal immediately with "Better luck tomorrow" title</li>
+          <li>Modal also accessible from a "Share" button on the result screen</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Dismiss behavior</h3>
+        <ul>
+          <li>Click outside modal → close</li>
+          <li>Press Escape → close</li>
+          <li>No "X" close button needed (keep UI clean)</li>
+          <li>Cannot reopen same day's modal (use localStorage flag)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- UX Flow -->
+  <div class="section">
+    <h2>UX Flow</h2>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-line">
+          <div class="flow-dot">1</div>
+          <div class="flow-connector"></div>
+        </div>
+        <div class="flow-content">
+          <div class="flow-title">Game ends</div>
+          <div class="flow-desc">Correct guess or all hints used. Save result to localStorage key <code>whoami-result-YYYY-MM-DD</code>.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-line">
+          <div class="flow-dot">2</div>
+          <div class="flow-connector"></div>
+        </div>
+        <div class="flow-content">
+          <div class="flow-title">Show modal</div>
+          <div class="flow-desc">Fade in result modal with score, emoji grid, and 3 action buttons.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-line">
+          <div class="flow-dot">3A</div>
+          <div class="flow-connector"></div>
+        </div>
+        <div class="flow-content">
+          <div class="flow-title">Copy Result</div>
+          <div class="flow-desc">Call <code>navigator.clipboard.writeText(shareText)</code> → show toast "Copied! 📋" for 2s. Button text changes to "Copied ✓" briefly.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-line">
+          <div class="flow-dot">3B</div>
+          <div class="flow-connector"></div>
+        </div>
+        <div class="flow-content">
+          <div class="flow-title">Share on X</div>
+          <div class="flow-desc">Open Twitter intent URL in new tab: <code>https://twitter.com/intent/tweet?text=ENCODED_TEXT</code></div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-line">
+          <div class="flow-dot">3C</div>
+        </div>
+        <div class="flow-content">
+          <div class="flow-title">Copy Link</div>
+          <div class="flow-desc">Copy <code>https://wc26wordle.netlify.app/whoami</code> to clipboard → toast "Link copied!"</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Code -->
+  <div class="section">
+    <h2>Code Reference</h2>
+
+    <h3 style="margin-bottom:0.75rem; font-family:system-ui,sans-serif; font-size:0.85rem; color:var(--muted);">generateShareText()</h3>
+    <pre><code><span class="comment">/**
+ * Generate spoiler-free share text
+ * @param {number} dayIndex       - Puzzle number (e.g. 42)
+ * @param {number} score          - Final score 0–100
+ * @param {number} hintsUsed      - Number of hints revealed
+ * @param {Array}  guessResults   - Array of per-hint results per attempt
+ *                                  e.g. [['wrong','wrong','wrong','wrong','wrong'], ['correct','wrong',...]]
+ * @returns {string}
+ */</span>
+<span class="kw">function</span> <span class="fn">generateShareText</span>(dayIndex, score, hintsUsed, guessResults) {
+  <span class="kw">const</span> EMOJI = {
+    correct: <span class="str">'🟩'</span>,
+    close:   <span class="str">'🟨'</span>,
+    wrong:   <span class="str">'⬜'</span>,
+    unused:  <span class="str">'⬛'</span>,
+  };
+
+  <span class="kw">const</span> HINT_ICONS = <span class="str">'🌍 Nationality · ⚽ Club · 📍 Position · 🔢 Number · 🎂 Age'</span>;
+  <span class="kw">const</span> TOTAL_HINTS = <span class="num">5</span>;
+
+  <span class="comment">// Build emoji grid — one row per guess attempt</span>
+  <span class="kw">const</span> grid = guessResults
+    .<span class="fn">map</span>(attempt => {
+      <span class="kw">const</span> cells = attempt.<span class="fn">map</span>(r => EMOJI[r] ?? EMOJI.wrong);
+      <span class="comment">// Pad unused hint slots</span>
+      <span class="kw">while</span> (cells.length &lt; TOTAL_HINTS) cells.<span class="fn">push</span>(EMOJI.unused);
+      <span class="kw">return</span> cells.<span class="fn">join</span>(<span class="str">''</span>);
+    })
+    .<span class="fn">join</span>(<span class="str">'\n'</span>);
+
+  <span class="kw">return</span> [
+    <span class="str">`🟩 WhoAmI #${dayIndex} — ${score}/100`</span>,
+    grid,
+    <span class="str">''</span>,
+    HINT_ICONS,
+    <span class="str">'wc26wordle.netlify.app/whoami'</span>,
+  ].<span class="fn">join</span>(<span class="str">'\n'</span>);
+}</code></pre>
+
+    <h3 style="margin-bottom:0.75rem; font-family:system-ui,sans-serif; font-size:0.85rem; color:var(--muted);">Share actions</h3>
+    <pre><code><span class="comment">// Copy to clipboard</span>
+<span class="kw">async function</span> <span class="fn">copyResult</span>(shareText) {
+  <span class="kw">await</span> navigator.clipboard.<span class="fn">writeText</span>(shareText);
+  <span class="fn">showToast</span>(<span class="str">'Copied! 📋'</span>);
+}
+
+<span class="comment">// Share to X / Twitter</span>
+<span class="kw">function</span> <span class="fn">shareToX</span>(shareText) {
+  <span class="kw">const</span> encoded = <span class="fn">encodeURIComponent</span>(shareText);
+  <span class="kw">const</span> url = <span class="str">`https://twitter.com/intent/tweet?text=${encoded}`</span>;
+  window.<span class="fn">open</span>(url, <span class="str">'_blank'</span>, <span class="str">'noopener'</span>);
+}
+
+<span class="comment">// Toast helper (2 second auto-dismiss)</span>
+<span class="kw">function</span> <span class="fn">showToast</span>(message) {
+  <span class="kw">const</span> toast = document.<span class="fn">createElement</span>(<span class="str">'div'</span>);
+  toast.className = <span class="str">'toast'</span>;
+  toast.textContent = message;
+  document.body.<span class="fn">appendChild</span>(toast);
+  <span class="fn">setTimeout</span>(() => toast.<span class="fn">remove</span>(), <span class="num">2000</span>);
+}</code></pre>
+
+    <h3 style="margin-bottom:0.75rem; font-family:system-ui,sans-serif; font-size:0.85rem; color:var(--muted);">guessResults data shape</h3>
+    <pre><code><span class="comment">// Shape expected by generateShareText()</span>
+<span class="comment">// Each inner array = one guess, 5 values for 5 hint categories</span>
+<span class="kw">const</span> exampleGuessResults = [
+  [<span class="str">'wrong'</span>, <span class="str">'wrong'</span>, <span class="str">'wrong'</span>, <span class="str">'wrong'</span>, <span class="str">'wrong'</span>],  <span class="comment">// attempt 1 - all wrong</span>
+  [<span class="str">'correct'</span>, <span class="str">'wrong'</span>, <span class="str">'wrong'</span>, <span class="str">'wrong'</span>, <span class="str">'wrong'</span>], <span class="comment">// attempt 2 - nationality correct</span>
+  [<span class="str">'correct'</span>, <span class="str">'correct'</span>, <span class="str">'correct'</span>, <span class="str">'correct'</span>, <span class="str">'correct'</span>], <span class="comment">// attempt 3 - correct!</span>
+];
+
+<span class="comment">// Possible values per cell: 'correct' | 'close' | 'wrong' | 'unused'</span></code></pre>
+  </div>
+
+  <!-- Rules -->
+  <div class="section">
+    <h2>Spoiler Rules</h2>
+    <div class="rule-box">
+      <div class="rule-title">🚫 Never include player name in share text</div>
+      <div class="rule-desc">The share text must be completely spoiler-free. Only emit score, emoji grid, and the game URL.</div>
+    </div>
+    <div class="rule-box">
+      <div class="rule-title">🔢 Day index must be deterministic</div>
+      <div class="rule-desc">Calculate as <code>Math.floor((today - GAME_START_DATE) / 86400000)</code> so all players share the same puzzle number for the same date.</div>
+    </div>
+    <div class="rule-box">
+      <div class="rule-title">📋 Clipboard fallback</div>
+      <div class="rule-desc">If <code>navigator.clipboard</code> is unavailable (HTTP or older browser), fall back to <code>document.execCommand('copy')</code> via a temporary textarea.</div>
+    </div>
+    <div class="rule-box">
+      <div class="rule-title">📱 Mobile share (optional)</div>
+      <div class="rule-desc">If <code>navigator.share</code> is available (mobile browsers), prefer it over clipboard for "Copy Result" — gives native share sheet.</div>
+    </div>
+  </div>
+
+  <!-- LocalStorage -->
+  <div class="section">
+    <h2>LocalStorage Keys</h2>
+    <table>
+      <thead>
+        <tr><th>Key</th><th>Value</th><th>Purpose</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>whoami-result-YYYY-MM-DD</code></td>
+          <td><code>{"score":82,"hintsUsed":3,"guessResults":[...]}</code></td>
+          <td>Persist result for share modal. Add <code>guessResults</code> field if not already stored.</td>
+        </tr>
+        <tr>
+          <td><code>whoami-played-YYYY-MM-DD</code></td>
+          <td><code>"true"</code></td>
+          <td>Already exists — gate for showing modal on revisit</td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="font-family:system-ui,sans-serif; font-size:0.8rem; color:var(--muted);">
+      ⚠️ Add <code>guessResults</code> to the result object when saving — required for emoji grid generation.
+    </p>
+  </div>
+
+  <!-- Acceptance Criteria -->
+  <div class="section">
+    <h2>Acceptance Criteria</h2>
+    <div class="card">
+      <ul>
+        <li>✅ Modal appears automatically when game ends (correct guess or all hints used)</li>
+        <li>✅ Modal shows: puzzle number, score, hints used, emoji grid, 3 action buttons</li>
+        <li>✅ "Copy Result" copies spoiler-free text to clipboard → toast confirms</li>
+        <li>✅ "Share on X" opens Twitter intent in new tab with pre-filled text</li>
+        <li>✅ "Copy Link" copies game URL → toast confirms</li>
+        <li>✅ Player name does NOT appear anywhere in share text</li>
+        <li>✅ Modal dismisses on Escape or outside click</li>
+        <li>✅ Works on mobile (test iOS Safari clipboard + share sheet)</li>
+        <li>✅ Emoji grid matches actual hint results (not hardcoded)</li>
+        <li>✅ Day index is consistent for all players on same date</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Stack note -->
+  <div class="section">
+    <h2>Stack Notes</h2>
+    <div class="card">
+      <p style="margin-bottom:0.6rem;">This game is built with <strong style="color:var(--text)">Next.js (App Router)</strong> deployed on <strong style="color:var(--text)">Vercel</strong>.</p>
+      <ul>
+        <li>Modal should be a React component (<code>ShareModal.tsx</code>)</li>
+        <li>Use <code>useState</code> to control modal visibility</li>
+        <li>Trigger modal open from the game's end-state logic</li>
+        <li>Style with Tailwind CSS (consistent with existing codebase)</li>
+        <li>No external libraries required — pure browser APIs</li>
+      </ul>
+      <div class="tag-row">
+        <span class="tag">Next.js</span>
+        <span class="tag">TypeScript</span>
+        <span class="tag">Tailwind CSS</span>
+        <span class="tag">Vercel</span>
+        <span class="tag">localStorage</span>
+        <span class="tag">navigator.clipboard</span>
+        <span class="tag">Twitter intent</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
